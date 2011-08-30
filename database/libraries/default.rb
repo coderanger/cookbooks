@@ -20,6 +20,10 @@
 
 class Chef
   class Resource
+    # Globally update the blocklists to prevent infinite recursion in #to_json and similar
+    FORBIDDEN_IVARS += [:@database_cluster, :@database_server]
+    HIDDEN_IVARS += [:@database_cluster, :@database_server]
+
     class Database
       module OptionsCollector
         def options
@@ -30,6 +34,7 @@ class Chef
           super
         rescue NoMethodError
           value ||= block
+          method_sym = method_sym.to_s.chomp('=').to_sym
           options[method_sym] = value if value
           options[method_sym] ||= nil
         end

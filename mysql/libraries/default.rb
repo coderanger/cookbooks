@@ -27,12 +27,14 @@ class Chef
           @db ||= begin
             Gem.clear_paths
             require 'mysql'
+            credentials = @new_resource.options[:credentials] || {}
+            Chef::Log.debug("Using mysql creds #{credentials.inspect}")
             ::Mysql.new(
-              @new_resource.connection[:host],
-              @new_resource.connection[:username],
-              @new_resource.connection[:password],
+              'localhost',
+              credentials[:username],
+              credentials[:password],
               nil,
-              @new_resource.connection[:port] || 3306
+              @new_resource.database_server.options[:port] || 3306
             )
           end
         end

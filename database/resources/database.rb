@@ -22,6 +22,7 @@ include Chef::Resource::Database::OptionsCollector
 
 actions :create, :drop
 
-attribute :name, :kind_of => String, :name_attribute => true
-attribute :cluster
-attribute :server
+attribute :id, :name_attribute => true
+attribute :name, :kind_of => String
+attribute :database_cluster
+attribute :database_server

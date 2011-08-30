@@ -18,5 +18,8 @@
 # limitations under the License.
 #
 
+action :validate do
+end
+
 action :create do
 end

@@ -19,4 +19,7 @@
 #
 
 action :create do
+  (new_resource.databases + new_resource.users).each do |res|
+    res.run_action(:validate)
+  end
 end

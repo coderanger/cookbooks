@@ -35,7 +35,7 @@ actions :create
 
 attribute :id, :kind_of => String, :name_attribute => true
 attribute :type, :kind_of => String
-attribute :cluster
+attribute :database_cluster
 attr_reader :databases, :users
 
 def database(name, options=nil, &block)
@@ -53,9 +53,10 @@ def sub_resource(resource_type, resource_id, resource_options, &block)
   if !resource
     resource = original_method_missing("database_#{resource_type}", "#{id}::#{resource_type}::#{resource_id}") do end
     # Make this a weakref to prevent a cycle between this resource and the sub resources
+    resource.database_cluster WeakRef.new(database_cluster)
+    resource.database_server WeakRef.new(self)
+    resource.send({:database => :name, :user => :username}[resource_type], resource_id)
     resource.options.update resource_options if resource_options
-    resource.cluster WeakRef.new(cluster)
-    resource.server WeakRef.new(self)
     resource.provider "#{type}_#{resource_type}"
     collection << resource
     resource.instance_eval(&block) if block
