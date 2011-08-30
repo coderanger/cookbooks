@@ -22,7 +22,6 @@ include Chef::Provider::Mysql::Base
 
 action :validate do
   raise "Password required" unless @new_resource.password
-  Chef::Log.debug("Pre-validate options #{@new_resource.options.inspect}")
   @new_resource.host ||= '%'
   @new_resource.credentials ||= {
     :user => 'root',
@@ -32,7 +31,7 @@ action :validate do
 end
 
 action :create do
-  unless exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+  if !exists? && node['roles'].include?(new_resource.database_cluster.master_role)
     begin
       db.query("CREATE USER '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'")
       @new_resource.updated_by_last_action(true)
@@ -54,10 +53,10 @@ action :drop do
 end
 
 action :grant do
-  unless node['roles'].include?(new_resource.database_cluster.master_role)
+  if node['roles'].include?(new_resource.database_cluster.master_role)
     begin
       @new_resource.grant.each do |priv, target|
-        grant_statement = "GRANT #{priv} ON #{@new_resource.target || "*"} TO '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'"
+        grant_statement = "GRANT #{priv} ON #{@new_resource.target || "*.*"} TO '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'"
         Chef::Log.info("#{@new_resource}: granting access with statement [#{grant_statement}]")
         db.query(grant_statement)
         @new_resource.updated_by_last_action(true)
