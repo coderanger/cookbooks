@@ -28,7 +28,6 @@ class Chef
             Gem.clear_paths
             require 'mysql'
             credentials = @new_resource.options[:credentials] || {}
-            Chef::Log.debug("Using mysql creds #{credentials.inspect}")
             ::Mysql.new(
               'localhost',
               credentials[:username],
