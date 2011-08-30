@@ -18,8 +18,53 @@
 # limitations under the License.
 #
 
+include Chef::Provider::Mysql::Base
+
 action :validate do
+  @new_resource.credentials ||= {
+    :user => 'root',
+    :password => node['mysql']['server_root_password'],
+  }
 end
 
 action :create do
+  if !exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+    begin
+      Chef::Log.debug("#{@new_resource}: Creating database #{new_resource.name}")
+      db.query("create database #{new_resource.name}")
+      @new_resource.updated_by_last_action(true)
+    ensure
+      close
+    end
+  end
+end
+
+action :drop do
+  if exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+    begin
+      Chef::Log.debug("#{@new_resource}: Dropping database #{new_resource.name}")
+      db.query("drop database #{new_resource.name}")
+      @new_resource.updated_by_last_action(true)
+    ensure
+      close
+    end
+  end
+end
+
+action :query do
+  if exists?
+    begin
+      db.select_db(@new_resource.name) if @new_resource.name
+      Chef::Log.debug("#{@new_resource}: Performing query [#{new_resource.sql}]")
+      db.query(@new_resource.sql)
+      @new_resource.updated_by_last_action(true)
+    ensure
+      close
+    end
+  end
+end
+
+private
+def exists?
+  db.list_dbs.include?(@new_resource.database_name)
 end

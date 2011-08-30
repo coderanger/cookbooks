@@ -20,9 +20,14 @@
 
 include Chef::Resource::Database::OptionsCollector
 
-actions :create, :drop
+actions :create, :drop, :query
 
 attribute :id, :name_attribute => true
 attribute :name, :kind_of => String
 attribute :database_cluster
 attribute :database_server
+
+def initialize(*args)
+  super
+  @action = :create
+end
