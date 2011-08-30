@@ -27,7 +27,6 @@ action :validate do
     :user => 'root',
     :password => node['mysql']['server_root_password'],
   }
-  Chef::Log.debug("Post-validate options #{@new_resource.options.inspect}")
 end
 
 action :create do
@@ -56,7 +55,9 @@ action :grant do
   if node['roles'].include?(new_resource.database_cluster.master_role)
     begin
       @new_resource.grant.each do |priv, target|
-        grant_statement = "GRANT #{priv} ON #{@new_resource.target || "*.*"} TO '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'"
+        target ||= '*.*'
+        target += '.*' unless target.include?('.')
+        grant_statement = "GRANT #{priv} ON #{target} TO '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'"
         Chef::Log.info("#{@new_resource}: granting access with statement [#{grant_statement}]")
         db.query(grant_statement)
         @new_resource.updated_by_last_action(true)

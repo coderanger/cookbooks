@@ -39,13 +39,18 @@ class GrantOptions
   end
 end
 
-def grant(grant_hash=nil, &block)
+def grant(arg=nil, &block)
   grant_options = options[:grant] ||= {}
   if block
     go = GrantOptions.new
     go.instance_eval(&block)
+    if arg && !arg.is_a?(Hash)
+      go.options.each do |key, val|
+        go.options[key] = arg.to_s if !val
+      end
+    end
     grant_options.update(go.options)
   end
-  grant_options.update(grant_hash) if grant_hash
+  grant_options.update(arg) if arg && arg.is_a?(Hash)
   grant_options
 end
