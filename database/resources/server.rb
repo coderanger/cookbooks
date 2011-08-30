@@ -21,11 +21,14 @@
 require 'weakref'
 
 include Chef::Mixin::RecipeDefinitionDSLCore
+alias :original_method_missing :method_missing
+include Chef::Resource::Database::OptionsCollector
 
 def initialize(*args)
   super
   @action = :create
-  @sub_resources = {}
+  @databases = []
+  @users = []
 end
 
 actions :create
@@ -33,16 +36,29 @@ actions :create
 attribute :id, :kind_of => String, :name_attribute => true
 attribute :type, :kind_of => String
 attribute :cluster
-attr_reader :sub_resources
+attr_reader :databases, :users
 
-def method_missing(name, resource_id, &block)
-  resource = @sub_resources[[name, resource_id]]
+def database(name, options=nil, &block)
+  sub_resource(:database, name, options, &block)
+end
+
+def user(name, options=nil, &block)
+  sub_resource(:user, name, options, &block)
+end
+
+private
+def sub_resource(resource_type, resource_id, resource_options, &block)
+  collection = {:database => @databases, :user => @users}[resource_type]
+  resource = collection.select{|res|res.id==resource_id}.first
   if !resource
-    resource = super("#{type}_#{name}", "#{id}::#{name}::#{resource_id}", &block)
+    resource = original_method_missing("database_#{resource_type}", "#{id}::#{resource_type}::#{resource_id}") do end
     # Make this a weakref to prevent a cycle between this resource and the sub resources
+    resource.options.update resource_options if resource_options
     resource.cluster WeakRef.new(cluster)
     resource.server WeakRef.new(self)
-    @sub_resources[[name, resource_id]] = resource
+    resource.provider "#{type}_#{resource_type}"
+    collection << resource
+    resource.instance_eval(&block) if block
   end
   resource
 end

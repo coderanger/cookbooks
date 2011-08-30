@@ -31,7 +31,7 @@ end
 actions :create
 
 attribute :id, :kind_of => String, :name_attribute => true
-attribute :master_role, :kind_of => [String, NilClass], :defaul => nil
+attribute :master_role, :kind_of => [String, NilClass], :default => nil
 attr_reader :servers
 
 # Used to grab the type attribute from a block
@@ -56,13 +56,14 @@ end
 def method_missing(db_type, &block)
   resource = @servers[db_type]
   if !resource
-    resource = super("database_server", "#{id}::#{db_type}", &block)
+    resource = super("database_server", "#{id}::#{db_type}") do end
     # Enforce action :nothing in case people forget
     resource.action :nothing
     # Make this a weakref to prevent a cycle between this resource and the sub resources
-    resource.type db_type
+    resource.type db_type.to_s
     resource.cluster WeakRef.new(self)
     @servers[db_type] = resource
+    resource.instance_eval(&block)
   end
   resource
 end
