@@ -32,7 +32,7 @@ class Chef
 
         def method_missing(method_sym, value=nil, &block)
           super
-        rescue NoMethodError
+        rescue NameError
           value ||= block
           method_sym = method_sym.to_s.chomp('=').to_sym
           options[method_sym] = value if value
