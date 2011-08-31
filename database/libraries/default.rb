@@ -21,8 +21,8 @@
 class Chef
   class Resource
     # Globally update the blocklists to prevent infinite recursion in #to_json and similar
-    FORBIDDEN_IVARS += [:@database_cluster, :@database_server]
-    HIDDEN_IVARS += [:@database_cluster, :@database_server]
+    FORBIDDEN_IVARS.concat [:@database_cluster, :@database_server]
+    HIDDEN_IVARS.concat [:@database_cluster, :@database_server]
 
     class Database
       module OptionsCollector
