@@ -28,7 +28,7 @@ action :validate do
 end
 
 action :create do
-  if !exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+  unless exists?
     begin
       Chef::Log.debug("#{@new_resource}: Creating database #{new_resource.name}")
       db.query("create database #{new_resource.name}")
@@ -40,7 +40,7 @@ action :create do
 end
 
 action :drop do
-  if exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+  if exists?
     begin
       Chef::Log.debug("#{@new_resource}: Dropping database #{new_resource.name}")
       db.query("drop database #{new_resource.name}")
@@ -66,5 +66,5 @@ end
 
 private
 def exists?
-  db.list_dbs.include?(@new_resource.database_name)
+  db.list_dbs.include?(@new_resource.name)
 end

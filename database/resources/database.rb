@@ -26,6 +26,7 @@ attribute :id, :name_attribute => true
 attribute :name, :kind_of => String
 attribute :database_cluster
 attribute :database_server
+attribute :original_action
 
 def initialize(*args)
   super

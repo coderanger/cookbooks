@@ -57,6 +57,8 @@ def sub_resource(resource_type, resource_id, resource_options, &block)
     resource.database_server WeakRef.new(self)
     resource.send({:database => :name, :user => :username}[resource_type], resource_id)
     resource.options.update resource_options if resource_options
+    resource.original_action resource.action
+    resource.action :nothing
     resource.provider "#{type}_#{resource_type}"
     collection << resource
     resource.instance_eval(&block) if block

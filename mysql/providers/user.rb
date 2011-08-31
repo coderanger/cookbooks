@@ -30,9 +30,11 @@ action :validate do
 end
 
 action :create do
-  if !exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+  unless exists?
     begin
-      db.query("CREATE USER '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'")
+      create_statement = "CREATE USER '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'"
+      create_statement += " IDENTIFIED BY '#{Mysql.quote(@new_resource.password)}'" if @new_resource.password
+      db.query(create_statement)
       @new_resource.updated_by_last_action(true)
     ensure
       close
@@ -41,9 +43,9 @@ action :create do
 end
 
 action :drop do
-  if exists? && node['roles'].include?(new_resource.database_cluster.master_role)
+  if exists?
     begin
-      db.query("DROP USER '#{@new_resource.username}'@'#{@new_resource.host}'")
+      db.query("DROP USER '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'")
       @new_resource.updated_by_last_action(true)
     ensure
       close
@@ -52,23 +54,22 @@ action :drop do
 end
 
 action :grant do
-  if node['roles'].include?(new_resource.database_cluster.master_role)
-    begin
-      @new_resource.grant.each do |priv, target|
-        target ||= '*.*'
-        target += '.*' unless target.include?('.')
-        grant_statement = "GRANT #{priv} ON #{target} TO '#{@new_resource.username}'@'#{@new_resource.host}' IDENTIFIED BY '#{@new_resource.password}'"
-        Chef::Log.info("#{@new_resource}: granting access with statement [#{grant_statement}]")
-        db.query(grant_statement)
-        @new_resource.updated_by_last_action(true)
-      end
-    ensure
-      close
+  begin
+    @new_resource.grant.each do |priv, target|
+      target ||= '*.*'
+      target += '.*' unless target.include?('.')
+      grant_statement = "GRANT #{priv} ON #{target} TO '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'"
+      grant_statement += " IDENTIFIED BY '#{Mysql.quote(@new_resource.password)}'" if @new_resource.password
+      Chef::Log.info("#{@new_resource}: granting access with statement [#{grant_statement}]")
+      db.query(grant_statement)
+      @new_resource.updated_by_last_action(true)
     end
+  ensure
+    close
   end
 end
 
 private
 def exists?
-  db.query("SELECT User,host from mysql.user WHERE User='#{@new_resource.username}' AND host = '#{@new_resource.host}'").num_rows != 0
+  db.query("SELECT User,host from mysql.user WHERE User='#{Mysql.quote(@new_resource.username)}' AND host = '#{Mysql.quote(@new_resource.host)}'").num_rows != 0
 end
