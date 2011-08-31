@@ -18,6 +18,7 @@
 # limitations under the License.
 #
 
+require 'net/http'
 require 'weakref'
 
 include Chef::Mixin::RecipeDefinitionDSLCore
@@ -32,6 +33,7 @@ actions :create
 
 attribute :id, :kind_of => String, :name_attribute => true
 attribute :master_role, :kind_of => [String, NilClass], :default => nil
+attribute :slave_role, :kind_of => [String, NilClass], :default => nil
 attr_reader :servers
 
 # Used to grab the type attribute from a block
@@ -74,4 +76,25 @@ end
 def database_user(type, name)
   raise "No database server for #{type} in cluster #{id}" unless @servers[type]
   @servers[type].sub_resources.select{|sub_type, sub_name| sub_type == "user" && sub_name == name}.first
+end
+
+def is_master?
+  @master_role ||= "#{id}_database_master"
+  @master_role_exists ||= begin
+    Chef::Role.load(@master_role)
+    true
+  rescue HTTPServerException => e
+    raise unless e.response.is_a? Net::HTTPNotFound
+    false
+  end
+  if @master_role_exists
+    node['roles'].include? @master_role
+  else
+    true
+  end
+end
+
+def is_slave?
+  @slave_role ||= "#{id}_database_slave"
+  node['roles'].include? @slave_role
 end
