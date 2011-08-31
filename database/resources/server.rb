@@ -38,7 +38,8 @@ attribute :type, :kind_of => String
 attribute :database_cluster
 attr_reader :databases, :users
 
-def database(name, options=nil, &block)
+def database(name=nil, options=nil, &block)
+  name ||= database_cluster.id
   sub_resource(:database, name, options, &block)
 end
 
