@@ -32,8 +32,8 @@ end
 action :create do
   unless exists?
     begin
-      create_statement = "CREATE USER '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'"
-      create_statement += " IDENTIFIED BY '#{Mysql.quote(@new_resource.password)}'" if @new_resource.password
+      create_statement = "CREATE USER '#{::Mysql.quote(@new_resource.username)}'@'#{::Mysql.quote(@new_resource.host)}'"
+      create_statement += " IDENTIFIED BY '#{::Mysql.quote(@new_resource.password)}'" if @new_resource.password
       db.query(create_statement)
       @new_resource.updated_by_last_action(true)
     ensure
@@ -45,7 +45,7 @@ end
 action :drop do
   if exists?
     begin
-      db.query("DROP USER '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'")
+      db.query("DROP USER '#{::Mysql.quote(@new_resource.username)}'@'#{::Mysql.quote(@new_resource.host)}'")
       @new_resource.updated_by_last_action(true)
     ensure
       close
@@ -58,8 +58,8 @@ action :grant do
     @new_resource.grant.each do |priv, target|
       target ||= '*.*'
       target += '.*' unless target.include?('.')
-      grant_statement = "GRANT #{priv} ON #{target} TO '#{Mysql.quote(@new_resource.username)}'@'#{Mysql.quote(@new_resource.host)}'"
-      grant_statement += " IDENTIFIED BY '#{Mysql.quote(@new_resource.password)}'" if @new_resource.password
+      grant_statement = "GRANT #{priv} ON #{target} TO '#{::Mysql.quote(@new_resource.username)}'@'#{::Mysql.quote(@new_resource.host)}'"
+      grant_statement += " IDENTIFIED BY '#{::Mysql.quote(@new_resource.password)}'" if @new_resource.password
       Chef::Log.info("#{@new_resource}: granting access with statement [#{grant_statement}]")
       db.query(grant_statement)
       @new_resource.updated_by_last_action(true)
@@ -71,5 +71,5 @@ end
 
 private
 def exists?
-  db.query("SELECT User,host from mysql.user WHERE User='#{Mysql.quote(@new_resource.username)}' AND host = '#{Mysql.quote(@new_resource.host)}'").num_rows != 0
+  db.query("SELECT User,host from mysql.user WHERE User='#{::Mysql.quote(@new_resource.username)}' AND host = '#{::Mysql.quote(@new_resource.host)}'").num_rows != 0
 end
