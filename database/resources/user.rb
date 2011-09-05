@@ -47,7 +47,7 @@ def grant(arg=nil, &block)
     go.instance_eval(&block)
     if arg && !arg.is_a?(Hash)
       go.options.each do |key, val|
-        go.options[key] = arg.to_s if !val
+        go.options[key] = arg.to_s || database_cluster.name if !val
       end
     end
     grant_options.update(go.options)

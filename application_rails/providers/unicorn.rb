@@ -32,31 +32,23 @@ action :before_symlink do
 end
 
 action :before_restart do
-  return # Don't want to fix things yet
 
   new_resource = @new_resource
 
-  node.default[:unicorn][:preload_app] = false
-  node.default[:unicorn][:worker_processes] = [node[:cpu][:total].to_i * 4, 8].min
-  node.default[:unicorn][:preload_app] = false
-  node.default[:unicorn][:before_fork] = 'sleep 1' 
-  node.default[:unicorn][:port] = '8080'
-  node.set[:unicorn][:options] = { :tcp_nodelay => true, :backlog => 100 }
-
   unicorn_config "/etc/unicorn/#{new_resource.id}.rb" do
-    listen({ node[:unicorn][:port] => node[:unicorn][:options] })
+    listen({ new_resource.port => new_resource.options })
     working_directory ::File.join(new_resource.path, 'current')
-    worker_timeout new_resource.worker_timeout 
-    preload_app node[:unicorn][:preload_app] 
-    worker_processes node[:unicorn][:worker_processes]
-    before_fork node[:unicorn][:before_fork] 
+    worker_timeout new_resource.worker_timeout
+    preload_app new_resource.preload_app
+    worker_processes new_resource.worker_processes
+    before_fork new_resource.before_fork
   end
 
   runit_service new_resource.id do
     template_name 'unicorn'
-    cookbook 'application'
+    cookbook 'application_rails'
     options(
-      :app => app,
+      :app => new_resource,
       :rails_env => new_resource.environment_name,
       :smells_like_rack => ::File.exists?(::File.join(new_resource.path, "current", "config.ru"))
     )

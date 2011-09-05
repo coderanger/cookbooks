@@ -1,9 +1,8 @@
 #
-# Author:: Noah Kantrowitz <noah@opscode.com>
 # Cookbook Name:: application
-# Resource:: unicorn
+# Recipe:: default
 #
-# Copyright:: 2011, Opscode, Inc <legal@opscode.com>
+# Copyright 2009, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +17,14 @@
 # limitations under the License.
 #
 
-include Chef::Resource::ApplicationBase
+search(:apps) do |app|
+  (app["server_roles"] & node.run_list.roles).each do |app_role|
+    app["type"][app_role].each do |thing|
+      node.run_state[:current_app] = app
+      include_recipe "application::#{thing}"
+    end
+  end
+end
 
-attribute :worker_timeout, :kind_of => Integer, :default => node.fetch(:unicorn, {})[:worker_timeout] || 60
-attribute :port, :kind_of => Integer, :default => 8080
+node.run_state.delete(:current_app)
+

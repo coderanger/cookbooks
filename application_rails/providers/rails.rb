@@ -62,7 +62,7 @@ action :before_deploy do
     if dbm
       template "#{new_resource.path}/shared/database.yml" do
         source "database.yml.erb"
-        cookbook "application"
+        cookbook "application_rails"
         owner new_resource.owner
         group new_resource.group
         mode "644"
@@ -86,7 +86,7 @@ action :before_deploy do
     end
     template "#{new_resource.path}/shared/memcached.yml" do
       source "memcached.yml.erb"
-      cookbook "application"
+      cookbook "application_rails"
       owner new_resource.owner
       group new_resource.group
       mode "644"

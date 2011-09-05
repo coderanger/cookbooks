@@ -58,7 +58,7 @@ end
 def method_missing(db_type, &block)
   resource = @servers[db_type]
   if !resource
-    resource = super("database_server", "#{id}::#{db_type}") do end
+    resource = super("database_server", "#{name}::#{db_type}") do end
     # Make this a weakref to prevent a cycle between this resource and the sub resources
     resource.type db_type.to_s
     resource.database_cluster WeakRef.new(self)
@@ -69,12 +69,12 @@ def method_missing(db_type, &block)
 end
 
 def database(type, name)
-  raise "No database server for #{type} in cluster #{id}" unless @servers[type]
+  raise "No database server for #{type} in cluster #{name}" unless @servers[type]
   @servers[type].sub_resources.select{|sub_type, sub_name| sub_type == "database" && sub_name == name}.first
 end
 
 def database_user(type, name)
-  raise "No database server for #{type} in cluster #{id}" unless @servers[type]
+  raise "No database server for #{type} in cluster #{name}" unless @servers[type]
   @servers[type].sub_resources.select{|sub_type, sub_name| sub_type == "user" && sub_name == name}.first
 end
 

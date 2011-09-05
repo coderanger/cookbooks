@@ -39,7 +39,7 @@ attribute :database_cluster
 attr_reader :databases, :users
 
 def database(name=nil, options=nil, &block)
-  name ||= database_cluster.id
+  name ||= database_cluster.name
   sub_resource(:database, name, options, &block)
 end
 
