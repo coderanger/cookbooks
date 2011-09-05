@@ -5,6 +5,6 @@ description      "Deploys and configures Django applications"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "0.99.12"
 
-%w{ python gunicorn supervisor }.each do |cb|
+%w{ application python gunicorn supervisor }.each do |cb|
   depends cb
 end
