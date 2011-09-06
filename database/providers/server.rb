@@ -20,7 +20,7 @@
 
 action :create do
   if new_resource.database_cluster.is_master?
-    (new_resource.databases + new_resource.users).each do |res|
+    (new_resource.users + new_resource.databases).each do |res|
       res.run_action(:validate)
       actions = res.original_action
       actions = [actions] unless actions.is_a? Enumerable
